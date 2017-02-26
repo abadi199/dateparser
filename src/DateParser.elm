@@ -7,8 +7,8 @@ Custom String to Date parser. This library uses date format from https://github.
 @docs parse
 -}
 
+import Pattern
 import Date exposing (Date)
-import Parser exposing ((|.), (|=))
 
 
 {-| Parses `String` to a `Date`, and since this parsing can fail, it returns a `Result` with a `String` error message.
@@ -19,11 +19,6 @@ parse : String -> String -> Result String Date
 parse pattern text =
     let
         parsedPattern =
-            parsePattern pattern
+            Pattern.parse pattern
     in
         Date.fromString text
-
-
-parsePattern patter =
-    Parser.succeed identity
-        |= Parser.ch

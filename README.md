@@ -8,8 +8,6 @@
 - %b - Abbreviated month name, e.g. "Jul"
 - %d - Zero-padded day of month, e.g "02"
 - %e - Space-padded day of month, e.g " 2"
-- %a - Day of week, abbreviated to three letters, e.g. "Wed"
-- %A - Day of week in full, e.g. "Wednesday"
 - %H - Hour of the day, 24-hour clock, zero-padded
 - %k - Hour of the day, 24-hour clock, space-padded
 - %I - Hour of the day, 12-hour clock, zero-padded
