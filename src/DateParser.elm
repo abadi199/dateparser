@@ -8,6 +8,7 @@ Custom String to Date parser. This library uses date format from https://github.
 -}
 
 import Date exposing (Date)
+import Parser exposing ((|.), (|=))
 
 
 {-| Parses `String` to a `Date`, and since this parsing can fail, it returns a `Result` with a `String` error message.
@@ -16,4 +17,13 @@ Example:
 -}
 parse : String -> String -> Result String Date
 parse pattern text =
-    Debug.crash ""
+    let
+        parsedPattern =
+            parsePattern pattern
+    in
+        Date.fromString text
+
+
+parsePattern patter =
+    Parser.succeed identity
+        |= Parser.ch
