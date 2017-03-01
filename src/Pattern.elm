@@ -9,8 +9,8 @@ type Pattern
     | MonthFullName
     | MonthAbbrvName
     | DateZeroPadded
-    | DateSpacePaddedd
-    | Hour24ZerroPadded
+    | DateSpacePadded
+    | Hour24ZeroPadded
     | Hour24SpacePadded
     | Hour12ZeroPadded
     | Hour12SpacePadded
@@ -41,7 +41,7 @@ checkDuplicate patterns =
             pattern == MonthZeroPadded || pattern == MonthAbbrvName || pattern == MonthFullName
 
         dateFilter pattern =
-            pattern == DateSpacePaddedd || pattern == DateZeroPadded
+            pattern == DateSpacePadded || pattern == DateZeroPadded
     in
         if patterns |> List.filter monthFilter |> moreThanTwo then
             Err "Invalid pattern: duplicate month"
@@ -78,8 +78,8 @@ nextPattern =
                     , symbol "B" |> andThen (always <| succeed MonthFullName)
                     , symbol "b" |> andThen (always <| succeed MonthAbbrvName)
                     , symbol "d" |> andThen (always <| succeed DateZeroPadded)
-                    , symbol "e" |> andThen (always <| succeed DateSpacePaddedd)
-                    , symbol "H" |> andThen (always <| succeed Hour24ZerroPadded)
+                    , symbol "e" |> andThen (always <| succeed DateSpacePadded)
+                    , symbol "H" |> andThen (always <| succeed Hour24ZeroPadded)
                     , symbol "k" |> andThen (always <| succeed Hour24SpacePadded)
                     , symbol "I" |> andThen (always <| succeed Hour12ZeroPadded)
                     , symbol "l" |> andThen (always <| succeed Hour12SpacePadded)
