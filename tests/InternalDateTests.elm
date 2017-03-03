@@ -215,25 +215,25 @@ individualParserTests =
         , test "TimeZoneOffsetColon" <|
             \() ->
                 InternalDate.parse config [ TimeZoneOffsetColon ] "+10:30"
-                    |> mapOk (.timeZoneOffset >> Expect.equal 630)
+                    |> mapOk (.timeZoneOffset >> Expect.equal -630)
                     |> mapError (toString >> Expect.fail)
                     |> join
         , test "TimeZoneOffsetColon" <|
             \() ->
                 InternalDate.parse config [ TimeZoneOffsetColon ] "-06:30"
-                    |> mapOk (.timeZoneOffset >> Expect.equal -390)
+                    |> mapOk (.timeZoneOffset >> Expect.equal 390)
                     |> mapError (toString >> Expect.fail)
                     |> join
         , test "TimeZoneOffset" <|
             \() ->
                 InternalDate.parse config [ TimeZoneOffset ] "+1030"
-                    |> mapOk (.timeZoneOffset >> Expect.equal 630)
+                    |> mapOk (.timeZoneOffset >> Expect.equal -630)
                     |> mapError (toString >> Expect.fail)
                     |> join
         , test "TimeZoneOffset" <|
             \() ->
                 InternalDate.parse config [ TimeZoneOffset ] "-0630"
-                    |> mapOk (.timeZoneOffset >> Expect.equal -390)
+                    |> mapOk (.timeZoneOffset >> Expect.equal 390)
                     |> mapError (toString >> Expect.fail)
                     |> join
         , test "Other" <|

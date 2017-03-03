@@ -432,8 +432,8 @@ timeZoneOffset useColon internalDate =
             Parser.succeed { internalDate | timeZoneOffset = sign * ((hour * 60) + minute) }
     in
         Parser.oneOf
-            [ Parser.delayedCommit (Parser.symbol "+") parser |> Parser.andThen (updateInternalDate (1))
-            , Parser.delayedCommit (Parser.symbol "-") parser |> Parser.andThen (updateInternalDate (-1))
+            [ Parser.delayedCommit (Parser.symbol "+") parser |> Parser.andThen (updateInternalDate (-1))
+            , Parser.delayedCommit (Parser.symbol "-") parser |> Parser.andThen (updateInternalDate (1))
             ]
 
 
