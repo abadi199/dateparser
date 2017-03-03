@@ -3,6 +3,8 @@ module InternalDate exposing (InternalDate, parse, emptyDate, AmPm(..))
 import Pattern exposing (Pattern(..))
 import Parser exposing (Error, Parser, succeed, (|=), (|.), inContext)
 import String
+import Date.Extra.Config
+import Date exposing (Month(..), Day(..))
 
 
 type alias InternalDate =
@@ -12,7 +14,9 @@ type alias InternalDate =
     , hour : Int
     , minute : Int
     , second : Int
+    , millisecond : Int
     , ampm : Maybe AmPm
+    , timeZoneOffset : Int
     }
 
 
@@ -29,31 +33,26 @@ emptyDate =
     , hour = 0
     , minute = 0
     , second = 0
+    , millisecond = 0
     , ampm = Nothing
+    , timeZoneOffset = 0
     }
 
 
-
--- , hour : Int
--- , minute : Int
--- , second : Int
--- , timeOffset : Int
--- }
-
-
-parse : List Pattern -> String -> Result Parser.Error InternalDate
-parse patterns str =
+parse : Date.Extra.Config.Config -> List Pattern -> String -> Result String InternalDate
+parse config patterns str =
     let
         parser =
             patterns
-                |> List.map fromPattern
+                |> List.map (fromPattern config)
                 |> List.foldl (\a b -> b |> Parser.andThen a) (succeed emptyDate)
     in
         Parser.run parser str
+            |> Result.mapError (always "InternalDate.parse error")
 
 
-fromPattern : Pattern -> (InternalDate -> Parser InternalDate)
-fromPattern pattern =
+fromPattern : Date.Extra.Config.Config -> Pattern -> (InternalDate -> Parser InternalDate)
+fromPattern config pattern =
     case pattern of
         Year ->
             year
@@ -61,11 +60,23 @@ fromPattern pattern =
         MonthZeroPadded ->
             monthZeroPadded
 
+        MonthSpacePadded ->
+            monthSpacePadded
+
+        Month ->
+            month
+
         MonthFullName ->
-            monthFullName
+            monthName { isFullName = True, isUpper = False, dateConfig = config }
+
+        MonthUpperFullName ->
+            monthName { isFullName = True, isUpper = True, dateConfig = config }
 
         MonthAbbrvName ->
-            monthAbbrvName
+            monthName { isFullName = False, isUpper = False, dateConfig = config }
+
+        MonthUpperAbbrvName ->
+            monthName { isFullName = False, isUpper = True, dateConfig = config }
 
         DateZeroPadded ->
             dateZeroPadded
@@ -73,17 +84,44 @@ fromPattern pattern =
         DateSpacePadded ->
             dateSpacePadded
 
+        Date ->
+            date
+
+        DateSuffix ->
+            dateSuffix False config
+
+        DateSpacePaddedSuffix ->
+            dateSuffix True config
+
+        DayOfWeekFullName ->
+            dayOfWeek { isFullName = True, isUpper = False, dateConfig = config }
+
+        DayOfWeekUpperFullName ->
+            dayOfWeek { isFullName = True, isUpper = True, dateConfig = config }
+
+        DayOfWeekAbbrvName ->
+            dayOfWeek { isFullName = False, isUpper = False, dateConfig = config }
+
+        DayOfWeekUpperAbbrvName ->
+            dayOfWeek { isFullName = False, isUpper = True, dateConfig = config }
+
         Hour24ZeroPadded ->
             hour24ZeroPadded
 
         Hour24SpacePadded ->
             hour24SpacePadded
 
+        Hour24 ->
+            hour24
+
         Hour12ZeroPadded ->
             hour12ZeroPadded
 
         Hour12SpacePadded ->
             hour12SpacePadded
+
+        Hour12 ->
+            hour12
 
         AMPM ->
             aMPM
@@ -96,6 +134,15 @@ fromPattern pattern =
 
         SecondZeroPadded ->
             secondZeroPadded
+
+        Millisecond ->
+            millisecond
+
+        TimeZoneOffset ->
+            timeZoneOffset False
+
+        TimeZoneOffsetColon ->
+            timeZoneOffset True
 
         Other symbol ->
             other symbol
@@ -132,7 +179,7 @@ secondZeroPadded =
 
 secondPadded : String -> InternalDate -> Parser InternalDate
 secondPadded pad internalDate =
-    List.range 1 60
+    List.range 0 59
         |> List.map (paddedInt pad (\number -> { internalDate | second = number }))
         |> Parser.oneOf
 
@@ -144,9 +191,22 @@ minuteZeroPadded =
 
 minutePadded : String -> InternalDate -> Parser InternalDate
 minutePadded pad internalDate =
-    List.range 1 60
+    List.range 0 59
         |> List.map (paddedInt pad (\number -> { internalDate | minute = number }))
         |> Parser.oneOf
+
+
+hour12 : InternalDate -> Parser InternalDate
+hour12 internalDate =
+    Parser.int
+        |> Parser.andThen
+            (\hour ->
+                if hour < 13 then
+                    Parser.succeed { internalDate | hour = hour }
+                else
+                    Parser.fail "not a valid 12 hour"
+            )
+        |> inContext "Hour12"
 
 
 hour12ZeroPadded : InternalDate -> Parser InternalDate
@@ -176,6 +236,19 @@ hour24SpacePadded =
     inContext "Hour24SpacePadded" << hour24Padded " "
 
 
+hour24 : InternalDate -> Parser InternalDate
+hour24 internalDate =
+    Parser.int
+        |> Parser.andThen
+            (\hour ->
+                if hour < 25 then
+                    Parser.succeed { internalDate | hour = hour }
+                else
+                    Parser.fail "not a valid 24 hour"
+            )
+        |> inContext "Hour24"
+
+
 hour24Padded : String -> InternalDate -> Parser InternalDate
 hour24Padded pad internalDate =
     List.range 1 24
@@ -193,48 +266,60 @@ monthSpacePadded =
     inContext "MonthSpacePadded" << monthPadded " "
 
 
+month : InternalDate -> Parser InternalDate
+month internalDate =
+    Parser.oneOf
+        (List.range 1 12 |> List.map (number (\int -> { internalDate | month = int })))
+
+
 monthPadded : String -> InternalDate -> Parser InternalDate
 monthPadded pad internalDate =
     Parser.oneOf
         (List.range 1 12 |> List.map (paddedInt pad (\number -> { internalDate | month = number })))
 
 
-monthFullName : InternalDate -> Parser InternalDate
-monthFullName internalDate =
-    inContext "MonthFullName" <|
-        Parser.oneOf
-            [ Parser.symbol "January" |> Parser.andThen (always <| succeed { internalDate | month = 1 })
-            , Parser.symbol "February" |> Parser.andThen (always <| succeed { internalDate | month = 2 })
-            , Parser.symbol "March" |> Parser.andThen (always <| succeed { internalDate | month = 3 })
-            , Parser.symbol "April" |> Parser.andThen (always <| succeed { internalDate | month = 4 })
-            , Parser.symbol "May" |> Parser.andThen (always <| succeed { internalDate | month = 5 })
-            , Parser.symbol "June" |> Parser.andThen (always <| succeed { internalDate | month = 6 })
-            , Parser.symbol "July" |> Parser.andThen (always <| succeed { internalDate | month = 7 })
-            , Parser.symbol "August" |> Parser.andThen (always <| succeed { internalDate | month = 8 })
-            , Parser.symbol "September" |> Parser.andThen (always <| succeed { internalDate | month = 9 })
-            , Parser.symbol "October" |> Parser.andThen (always <| succeed { internalDate | month = 10 })
-            , Parser.symbol "November" |> Parser.andThen (always <| succeed { internalDate | month = 11 })
-            , Parser.symbol "December" |> Parser.andThen (always <| succeed { internalDate | month = 12 })
-            ]
+type alias ParserConfig =
+    { isUpper : Bool, isFullName : Bool, dateConfig : Date.Extra.Config.Config }
 
 
-monthAbbrvName : InternalDate -> Parser InternalDate
-monthAbbrvName internalDate =
-    inContext "MonthAbbrvName" <|
-        Parser.oneOf
-            [ Parser.symbol "Jan" |> Parser.andThen (always <| succeed { internalDate | month = 1 })
-            , Parser.symbol "Feb" |> Parser.andThen (always <| succeed { internalDate | month = 2 })
-            , Parser.symbol "Mar" |> Parser.andThen (always <| succeed { internalDate | month = 3 })
-            , Parser.symbol "Apr" |> Parser.andThen (always <| succeed { internalDate | month = 4 })
-            , Parser.symbol "May" |> Parser.andThen (always <| succeed { internalDate | month = 5 })
-            , Parser.symbol "Jun" |> Parser.andThen (always <| succeed { internalDate | month = 6 })
-            , Parser.symbol "Jul" |> Parser.andThen (always <| succeed { internalDate | month = 7 })
-            , Parser.symbol "Aug" |> Parser.andThen (always <| succeed { internalDate | month = 8 })
-            , Parser.symbol "Sep" |> Parser.andThen (always <| succeed { internalDate | month = 9 })
-            , Parser.symbol "Oct" |> Parser.andThen (always <| succeed { internalDate | month = 10 })
-            , Parser.symbol "Nov" |> Parser.andThen (always <| succeed { internalDate | month = 11 })
-            , Parser.symbol "Dec" |> Parser.andThen (always <| succeed { internalDate | month = 12 })
-            ]
+monthNameParser : ParserConfig -> InternalDate -> Date.Month -> Parser InternalDate
+monthNameParser config internalDate month =
+    let
+        getMonthName =
+            if config.isFullName then
+                config.dateConfig.i18n.monthName
+            else
+                config.dateConfig.i18n.monthShort
+    in
+        Parser.symbol (getMonthName month |> toUpper config.isUpper) |> Parser.andThen (always <| succeed { internalDate | month = monthToInt month })
+
+
+monthName : ParserConfig -> InternalDate -> Parser InternalDate
+monthName config internalDate =
+    [ Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec ]
+        |> List.map (monthNameParser config internalDate)
+        |> Parser.oneOf
+        |> inContext "MonthName"
+
+
+dayNameParser : ParserConfig -> InternalDate -> Date.Day -> Parser InternalDate
+dayNameParser config internalDate day =
+    let
+        getDayName =
+            if config.isFullName then
+                config.dateConfig.i18n.dayName
+            else
+                config.dateConfig.i18n.dayShort
+    in
+        Parser.symbol (getDayName day |> toUpper config.isUpper) |> Parser.andThen (always <| succeed internalDate)
+
+
+dayOfWeek : ParserConfig -> InternalDate -> Parser InternalDate
+dayOfWeek config internalDate =
+    [ Sun, Mon, Tue, Wed, Thu, Fri, Sat ]
+        |> List.map (dayNameParser config internalDate)
+        |> Parser.oneOf
+        |> inContext "DayOfWeek"
 
 
 dateZeroPadded : InternalDate -> Parser InternalDate
@@ -247,11 +332,39 @@ dateSpacePadded =
     datePadded " "
 
 
+date : InternalDate -> Parser InternalDate
+date internalDate =
+    Parser.int
+        |> Parser.andThen
+            (\number ->
+                if number <= 31 then
+                    Parser.succeed { internalDate | date = number }
+                else
+                    Parser.fail "not a valid date"
+            )
+        |> inContext "date"
+
+
 datePadded : String -> InternalDate -> Parser InternalDate
 datePadded pad internalDate =
     inContext "DateZeroPadded" <|
         Parser.oneOf
             (List.range 1 31 |> List.map (paddedInt pad (\number -> { internalDate | date = number })))
+
+
+dateSuffix : Bool -> Date.Extra.Config.Config -> InternalDate -> Parser InternalDate
+dateSuffix usePadding config internalDate =
+    let
+        parser date =
+            Parser.symbol (config.i18n.dayOfMonthWithSuffix usePadding date) |> Parser.andThen (\_ -> Parser.succeed { internalDate | date = date })
+    in
+        Parser.oneOf
+            (List.range 1 31 |> List.map parser)
+
+
+number : (Int -> InternalDate) -> Int -> Parser InternalDate
+number f number =
+    Parser.symbol (toString number) |> Parser.andThen (always <| succeed (f number))
 
 
 paddedInt : String -> (Int -> InternalDate) -> Int -> Parser InternalDate
@@ -272,7 +385,141 @@ paddedInt pad f number =
             Parser.symbol paddedNumber |> Parser.andThen (always <| succeed (f number))
 
 
+millisecond : InternalDate -> Parser InternalDate
+millisecond internalDate =
+    let
+        thirdDigit ms =
+            if ms < 10 then
+                Parser.succeed { internalDate | millisecond = ms }
+            else
+                Parser.fail "not millisecond"
+
+        secondDigit ms =
+            if ms < 100 then
+                Parser.succeed { internalDate | millisecond = ms }
+            else
+                Parser.fail "not millisecond"
+
+        firstDigit ms =
+            if ms < 1000 then
+                Parser.succeed { internalDate | millisecond = ms }
+            else
+                Parser.fail "not millisecond"
+    in
+        Parser.oneOf
+            [ Parser.delayedCommit (Parser.symbol "00") (Parser.int) |> Parser.andThen thirdDigit
+            , Parser.delayedCommit (Parser.symbol "0") (Parser.int) |> Parser.andThen secondDigit
+            , Parser.int |> Parser.andThen firstDigit
+            ]
+
+
+timeZoneOffset : Bool -> InternalDate -> Parser InternalDate
+timeZoneOffset useColon internalDate =
+    let
+        parser : Parser ( Int, Int )
+        parser =
+            if useColon then
+                Parser.succeed (,)
+                    |= paddedHour
+                    |. Parser.symbol ":"
+                    |= paddedMinute
+            else
+                Parser.succeed (,)
+                    |= paddedHour
+                    |= paddedMinute
+
+        updateInternalDate sign ( hour, minute ) =
+            Parser.succeed { internalDate | timeZoneOffset = sign * ((hour * 60) + minute) }
+    in
+        Parser.oneOf
+            [ Parser.delayedCommit (Parser.symbol "+") parser |> Parser.andThen (updateInternalDate (1))
+            , Parser.delayedCommit (Parser.symbol "-") parser |> Parser.andThen (updateInternalDate (-1))
+            ]
+
+
+paddedInts : List Int -> Parser Int
+paddedInts numbers =
+    let
+        pad number =
+            if number < 10 then
+                "0" ++ toString number
+            else
+                toString number
+
+        parser number =
+            Parser.symbol (pad number) |> Parser.andThen (always (Parser.succeed number))
+    in
+        numbers
+            |> List.map parser
+            |> Parser.oneOf
+
+
+paddedHour : Parser Int
+paddedHour =
+    List.range 0 12
+        |> paddedInts
+
+
+paddedMinute : Parser Int
+paddedMinute =
+    List.range 0 59
+        |> paddedInts
+
+
+timeZoneOffsetColon : InternalDate -> Parser InternalDate
+timeZoneOffsetColon internalDate =
+    Debug.crash "timeZoneOffsetColon"
+
+
 other : String -> InternalDate -> Parser InternalDate
 other symbol internalDate =
     (inContext "Other" <| succeed identity |. Parser.symbol symbol)
         |> Parser.andThen (\_ -> succeed internalDate)
+
+
+toUpper : Bool -> String -> String
+toUpper upper =
+    if upper then
+        String.toUpper
+    else
+        identity
+
+
+monthToInt : Date.Month -> Int
+monthToInt month =
+    case month of
+        Jan ->
+            1
+
+        Feb ->
+            2
+
+        Mar ->
+            3
+
+        Apr ->
+            4
+
+        May ->
+            5
+
+        Jun ->
+            6
+
+        Jul ->
+            7
+
+        Aug ->
+            8
+
+        Sep ->
+            9
+
+        Oct ->
+            10
+
+        Nov ->
+            11
+
+        Dec ->
+            12

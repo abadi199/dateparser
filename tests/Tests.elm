@@ -9,7 +9,7 @@ import InternalDateTests
 all : Test
 all =
     describe "Date Parser Test Suite"
-        [ DateParserTests.tests
-        , PatternTests.tests
+        [ --DateParserTests.tests
+          PatternTests.tests
         , InternalDateTests.tests
         ]

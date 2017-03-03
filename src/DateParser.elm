@@ -1,7 +1,8 @@
 module DateParser exposing (parse)
 
 {-|
-Custom String to Date parser. This library uses date format from https://github.com/mgold/elm-date-format/blob/1.2.0/README.md
+Custom String to Date parser.
+This library uses date format from https://github.com/rluiten/elm-date-extra/blob/8.2.0/DocFormat.md
 
 # Parsing
 @docs parse
@@ -9,6 +10,7 @@ Custom String to Date parser. This library uses date format from https://github.
 
 import Pattern
 import Date exposing (Date)
+import InternalDate
 
 
 {-| Parses `String` to a `Date`, and since this parsing can fail, it returns a `Result` with a `String` error message.
@@ -16,9 +18,14 @@ Example:
     parse "%d/%m/%Y" "31/12/2017" == Date.fromString "2017-12-31"
 -}
 parse : String -> String -> Result String Date
-parse pattern text =
+parse pattern date =
     let
-        parsedPattern =
+        parsedPatternResult =
             Pattern.parse pattern
     in
-        Date.fromString text
+        case parsedPatternResult of
+            Ok parsedPattern ->
+                Err "not implemented yet"
+
+            Err error ->
+                Err error

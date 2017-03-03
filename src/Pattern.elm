@@ -6,18 +6,34 @@ import Parser exposing (Parser, (|.), (|=), succeed, symbol, andThen, oneOf, del
 type Pattern
     = Year
     | MonthZeroPadded
+    | MonthSpacePadded
+    | Month
     | MonthFullName
+    | MonthUpperFullName
     | MonthAbbrvName
+    | MonthUpperAbbrvName
     | DateZeroPadded
     | DateSpacePadded
+    | Date
+    | DateSuffix
+    | DateSpacePaddedSuffix
+    | DayOfWeekFullName
+    | DayOfWeekUpperFullName
+    | DayOfWeekAbbrvName
+    | DayOfWeekUpperAbbrvName
     | Hour24ZeroPadded
     | Hour24SpacePadded
+    | Hour24
     | Hour12ZeroPadded
     | Hour12SpacePadded
+    | Hour12
     | AMPM
     | Ampm
     | MinuteZeroPadded
     | SecondZeroPadded
+    | Millisecond
+    | TimeZoneOffset
+    | TimeZoneOffsetColon
     | Other String
 
 
@@ -71,23 +87,39 @@ nextPattern : Parser Pattern
 nextPattern =
     inContext "pattern" <|
         delayedCommit (symbol "%") <|
-            succeed identity
-                |= oneOf
-                    [ symbol "Y" |> andThen (always <| succeed Year)
-                    , symbol "m" |> andThen (always <| succeed MonthZeroPadded)
-                    , symbol "B" |> andThen (always <| succeed MonthFullName)
-                    , symbol "b" |> andThen (always <| succeed MonthAbbrvName)
-                    , symbol "d" |> andThen (always <| succeed DateZeroPadded)
-                    , symbol "e" |> andThen (always <| succeed DateSpacePadded)
-                    , symbol "H" |> andThen (always <| succeed Hour24ZeroPadded)
-                    , symbol "k" |> andThen (always <| succeed Hour24SpacePadded)
-                    , symbol "I" |> andThen (always <| succeed Hour12ZeroPadded)
-                    , symbol "l" |> andThen (always <| succeed Hour12SpacePadded)
-                    , symbol "p" |> andThen (always <| succeed AMPM)
-                    , symbol "P" |> andThen (always <| succeed Ampm)
-                    , symbol "M" |> andThen (always <| succeed MinuteZeroPadded)
-                    , symbol "S" |> andThen (always <| succeed SecondZeroPadded)
-                    ]
+            oneOf
+                [ symbol "Y" |> andThen (always <| succeed Year)
+                , symbol "m" |> andThen (always <| succeed MonthZeroPadded)
+                , symbol "_m" |> andThen (always <| succeed MonthSpacePadded)
+                , symbol "-m" |> andThen (always <| succeed Month)
+                , symbol "B" |> andThen (always <| succeed MonthFullName)
+                , symbol "^B" |> andThen (always <| succeed MonthUpperFullName)
+                , symbol "b" |> andThen (always <| succeed MonthAbbrvName)
+                , symbol "^b" |> andThen (always <| succeed MonthUpperAbbrvName)
+                , symbol "d" |> andThen (always <| succeed DateZeroPadded)
+                , symbol "-d" |> andThen (always <| succeed Date)
+                , symbol "-@d" |> andThen (always <| succeed DateSuffix)
+                , symbol "e" |> andThen (always <| succeed DateSpacePadded)
+                , symbol "@e" |> andThen (always <| succeed DateSpacePaddedSuffix)
+                , symbol "A" |> andThen (always <| succeed DayOfWeekFullName)
+                , symbol "^A" |> andThen (always <| succeed DayOfWeekUpperFullName)
+                , symbol "a" |> andThen (always <| succeed DayOfWeekAbbrvName)
+                , symbol "^a" |> andThen (always <| succeed DayOfWeekUpperAbbrvName)
+                , symbol "H" |> andThen (always <| succeed Hour24ZeroPadded)
+                , symbol "-H" |> andThen (always <| succeed Hour24)
+                , symbol "k" |> andThen (always <| succeed Hour24SpacePadded)
+                , symbol "I" |> andThen (always <| succeed Hour12ZeroPadded)
+                , symbol "-I" |> andThen (always <| succeed Hour12)
+                , symbol "l" |> andThen (always <| succeed Hour12SpacePadded)
+                , symbol "p" |> andThen (always <| succeed AMPM)
+                , symbol "P" |> andThen (always <| succeed Ampm)
+                , symbol "M" |> andThen (always <| succeed MinuteZeroPadded)
+                , symbol "S" |> andThen (always <| succeed SecondZeroPadded)
+                , symbol "L" |> andThen (always <| succeed Millisecond)
+                , symbol "z" |> andThen (always <| succeed TimeZoneOffset)
+                , symbol ":z" |> andThen (always <| succeed TimeZoneOffsetColon)
+                , symbol "%" |> andThen (always <| succeed (Other "%"))
+                ]
 
 
 other : Parser Pattern
