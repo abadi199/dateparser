@@ -15,7 +15,7 @@ tests =
         [ test "DateParser.parse 12/31/2017" <|
             \() ->
                 DateParser.parse config "%m/%d/%Y" "12/31/2017"
-                    |> Expect.equal (Date.fromString "12/31/2017")
+                    |> Expect.equal (Ok <| Date.Extra.Create.dateFromFields 2017 Dec 31 0 0 0 0)
         , test "DateParser.parse %d/%m/%Y" <|
             \() ->
                 DateParser.parse config "%d/%m/%Y" "31/12/2017"

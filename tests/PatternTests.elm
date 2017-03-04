@@ -5,6 +5,7 @@ import Expect exposing (Expectation)
 import Pattern exposing (Pattern(..))
 import TestHelpers exposing (mapOk, mapError, join)
 import Parser
+import Error exposing (Error(..))
 
 
 tests : Test
@@ -40,13 +41,13 @@ parseTests =
             \() ->
                 Pattern.parse "%d%m%e"
                     |> mapOk (always <| Expect.fail "should fail")
-                    |> mapError (Expect.equal "Invalid pattern: duplicate date")
+                    |> mapError (Expect.equal <| PatternError "You have more than 1 date in your pattern")
                     |> join
         , test "Pattern.parse %m/%m" <|
             \() ->
                 Pattern.parse "%m/%m"
                     |> mapOk (always <| Expect.fail "should fail")
-                    |> mapError (Expect.equal "Invalid pattern: duplicate month")
+                    |> mapError (Expect.equal <| PatternError "You have more than 1 month in your pattern")
                     |> join
         ]
 

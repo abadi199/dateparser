@@ -1,17 +1,17 @@
 module InternalDate exposing (parse, toDate)
 
 import Pattern exposing (Pattern(..))
-import Parser exposing (Error, Parser, succeed, (|=), (|.), inContext)
-import String
+import Parser exposing (Parser, succeed, (|=), (|.), inContext)
 import Date.Extra.Config
 import Date exposing (Month(..), Day(..), Date)
 import Utilities exposing (toUpper, monthToInt, monthFromInt)
 import InternalDate.Type exposing (InternalDate, emptyDate, AmPm(..))
 import InternalDate.Parser exposing (fromPattern)
 import Date.Extra.Create
+import Error exposing (Error(..))
 
 
-parse : String -> Date.Extra.Config.Config -> List Pattern -> Result String InternalDate
+parse : String -> Date.Extra.Config.Config -> List Pattern -> Result Error InternalDate
 parse str config patterns =
     let
         parser =
@@ -20,10 +20,10 @@ parse str config patterns =
                 |> List.foldl (\a b -> b |> Parser.andThen a) (succeed emptyDate)
     in
         Parser.run parser str
-            |> Result.mapError (always "InternalDate.parse error")
+            |> Result.mapError ParsingError
 
 
-toDate : InternalDate -> Result String Date
+toDate : InternalDate -> Result Error Date
 toDate internalDate =
     let
         monthResult =
@@ -45,6 +45,7 @@ toDate internalDate =
             )
             monthResult
             hourResult
+            |> Result.mapError DateError
 
 
 toHour24 : InternalDate -> Result String Int

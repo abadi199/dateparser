@@ -1,6 +1,7 @@
 module Pattern exposing (parse, Pattern(..), other)
 
-import Parser exposing (Parser, (|.), (|=), succeed, symbol, andThen, oneOf, delayedCommit, inContext, run, Error, fail)
+import Parser exposing (Parser, (|.), (|=), succeed, symbol, andThen, oneOf, delayedCommit, inContext, run, fail)
+import Error exposing (Error(..))
 
 
 type Pattern
@@ -37,17 +38,17 @@ type Pattern
     | Other String
 
 
-parse : String -> Result String (List Pattern)
+parse : String -> Result Error (List Pattern)
 parse pattern =
     pattern
         |> run patternList
-        |> Result.mapError (toString)
+        |> Result.mapError (toString >> PatternError)
         |> Result.andThen checkDuplicate
 
 
 {-| TODO: optimize this
 -}
-checkDuplicate : List Pattern -> Result String (List Pattern)
+checkDuplicate : List Pattern -> Result Error (List Pattern)
 checkDuplicate patterns =
     let
         moreThanTwo list =
@@ -60,9 +61,9 @@ checkDuplicate patterns =
             pattern == DateSpacePadded || pattern == DateZeroPadded
     in
         if patterns |> List.filter monthFilter |> moreThanTwo then
-            Err "Invalid pattern: duplicate month"
+            Err <| PatternError "You have more than 1 month in your pattern"
         else if patterns |> List.filter dateFilter |> moreThanTwo then
-            Err "Invalid pattern: duplicate date"
+            Err <| PatternError "You have more than 1 date in your pattern"
         else
             Ok patterns
 
