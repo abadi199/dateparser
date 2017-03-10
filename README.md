@@ -1,5 +1,4 @@
 # Date Parser
-### UNDER CONSTRUCTION
 
  Custom Date Parser in Elm
  This package is intended to work alongside with [rluiten/elm-date-extra](package.elm-lang.org/packages/rluiten/elm-date-extra/latest)
