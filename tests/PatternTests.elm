@@ -37,18 +37,6 @@ parseTests =
                     |> mapOk (Expect.equal [ DateZeroPadded, Other " - ", MonthZeroPadded, Other " - ", Year ])
                     |> mapError (toString >> Expect.fail)
                     |> join
-        , test "Pattern.parse %d%m%e" <|
-            \() ->
-                Pattern.parse "%d%m%e"
-                    |> mapOk (always <| Expect.fail "should fail")
-                    |> mapError (Expect.equal <| PatternError "You have more than 1 date in your pattern")
-                    |> join
-        , test "Pattern.parse %m/%m" <|
-            \() ->
-                Pattern.parse "%m/%m"
-                    |> mapOk (always <| Expect.fail "should fail")
-                    |> mapError (Expect.equal <| PatternError "You have more than 1 month in your pattern")
-                    |> join
         ]
 
 

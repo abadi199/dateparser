@@ -43,29 +43,6 @@ parse pattern =
     pattern
         |> run patternList
         |> Result.mapError (toString >> PatternError)
-        |> Result.andThen checkDuplicate
-
-
-{-| TODO: optimize this
--}
-checkDuplicate : List Pattern -> Result Error (List Pattern)
-checkDuplicate patterns =
-    let
-        moreThanTwo list =
-            (List.length list) >= 2
-
-        monthFilter pattern =
-            pattern == MonthZeroPadded || pattern == MonthAbbrvName || pattern == MonthFullName
-
-        dateFilter pattern =
-            pattern == DateSpacePadded || pattern == DateZeroPadded
-    in
-        if patterns |> List.filter monthFilter |> moreThanTwo then
-            Err <| PatternError "You have more than 1 month in your pattern"
-        else if patterns |> List.filter dateFilter |> moreThanTwo then
-            Err <| PatternError "You have more than 1 date in your pattern"
-        else
-            Ok patterns
 
 
 patternList : Parser (List Pattern)

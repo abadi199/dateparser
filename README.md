@@ -5,6 +5,8 @@
  This package is intended to work alongside with [rluiten/elm-date-extra](package.elm-lang.org/packages/rluiten/elm-date-extra/latest)
 
 ## Format
+This library uses the date format pattern from: [https://github.com/rluiten/elm-date-extra/blob/8.2.0/DocFormat.md](https://github.com/rluiten/elm-date-extra/blob/8.2.0/DocFormat.md)
+
 - %Y - 4 digit year, zero-padded
 - %m - Zero-padded month of year, e.g. "07" for July
 - %_m - Space-padded month of year, e.g. " 7" for July
@@ -38,3 +40,10 @@
 - %z - time zone offset format "(+/-)HHMM"
 - %:z - time zone offset format "(+/-)HH:MM"
 - %% - produces a %
+
+
+## Example:
+```elm
+DateParser.parse Date.Extra.Config.Config_en_us "%d/%m/%Y" "31/12/2017"
+DateParser.parse Date.Extra.Config.Config_en_us "%d/%m/%Y %I:%M %P" "31/12/2017 09:30 AM"
+```
