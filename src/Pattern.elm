@@ -1,7 +1,7 @@
-module Pattern exposing (parse, Pattern(..), other)
+module Pattern exposing (Pattern(..), other, parse)
 
-import Parser exposing (Parser, (|.), (|=), succeed, symbol, andThen, oneOf, delayedCommit, inContext, run, fail)
 import Error exposing (Error(..))
+import Parser exposing ((|.), (|=), Parser, andThen, delayedCommit, fail, inContext, oneOf, run, succeed, symbol)
 
 
 type Pattern
@@ -109,8 +109,8 @@ other =
             else
                 succeed (Other str)
     in
-        Parser.ignoreWhile isNotSymbol
-            |> Parser.mapWithSource always
+        Parser.ignore Parser.zeroOrMore isNotSymbol
+            |> Parser.sourceMap always
             |> andThen toPattern
 
 
