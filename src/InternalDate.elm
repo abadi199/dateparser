@@ -74,5 +74,8 @@ toHour ampm hour =
         ( AM, _ ) ->
             hour
 
+        ( PM, 12 ) ->
+            12
+
         ( PM, _ ) ->
             hour + 12
