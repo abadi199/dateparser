@@ -46,3 +46,13 @@ This library uses the date format pattern from: [https://github.com/rluiten/elm-
 DateParser.parse Date.Extra.Config.Config_en_us "%d/%m/%Y" "31/12/2017"
 DateParser.parse Date.Extra.Config.Config_en_us "%d/%m/%Y %I:%M %P" "31/12/2017 09:30 AM"
 ```
+
+
+## Development info
+
+Running tests:
+
+```sh
+npm install
+npm test
+```

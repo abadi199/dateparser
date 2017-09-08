@@ -1,19 +1,10 @@
-module PatternTests exposing (tests)
+module PatternTests exposing (otherTests, parseTests)
 
-import Test exposing (..)
 import Expect exposing (Expectation)
-import Pattern exposing (Pattern(..))
-import TestHelpers exposing (mapOk, mapError, join)
 import Parser
-import Error exposing (Error(..))
-
-
-tests : Test
-tests =
-    describe "Pattern Test Suite"
-        [ parseTests
-        , otherTests
-        ]
+import Pattern exposing (Pattern(..))
+import Test exposing (..)
+import TestHelpers exposing (join, mapError, mapOk)
 
 
 parseTests : Test
@@ -43,7 +34,7 @@ parseTests =
 otherTests : Test
 otherTests =
     describe "Pattern.other"
-        [ test "" <|
+        [ test "(empty pattern)" <|
             \() ->
                 Parser.run Pattern.other ""
                     |> mapOk (always <| Expect.fail "should fail")
