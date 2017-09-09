@@ -1,7 +1,7 @@
 module InternalDate.Type
     exposing
-        ( InternalDate
-        , AmPm(..)
+        ( AmPm(..)
+        , InternalDate
         , emptyDate
         )
 

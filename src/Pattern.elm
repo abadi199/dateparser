@@ -109,9 +109,9 @@ other =
             else
                 succeed (Other str)
     in
-        Parser.ignore Parser.zeroOrMore isNotSymbol
-            |> Parser.sourceMap always
-            |> andThen toPattern
+    Parser.ignore Parser.zeroOrMore isNotSymbol
+        |> Parser.sourceMap always
+        |> andThen toPattern
 
 
 isNotSymbol : Char -> Bool

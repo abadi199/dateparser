@@ -1,12 +1,12 @@
 module DateParserTests exposing (tests)
 
-import Test exposing (..)
-import Expect exposing (Expectation)
-import DateParser
 import Date exposing (Month(..))
 import Date.Extra.Config.Config_en_us exposing (config)
 import Date.Extra.Create
-import TestHelpers exposing (mapOk, mapError, join)
+import DateParser
+import Expect exposing (Expectation)
+import Test exposing (..)
+import TestHelpers exposing (join, mapError, mapOk)
 
 
 tests : Test

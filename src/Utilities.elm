@@ -1,8 +1,8 @@
 module Utilities
     exposing
-        ( toUpper
+        ( monthFromInt
         , monthToInt
-        , monthFromInt
+        , toUpper
         )
 
 import Date exposing (Month(..))
