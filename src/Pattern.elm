@@ -1,7 +1,7 @@
 module Pattern exposing (Pattern(..), other, parse)
 
 import Error exposing (Error(..))
-import Parser exposing ((|.), (|=), Parser, andThen, delayedCommit, fail, inContext, oneOf, run, succeed, symbol)
+import Parser exposing ((|.), (|=), Parser, andThen, delayedCommit, fail, inContext, oneOf, oneOrMore, repeat, run, succeed, symbol)
 
 
 type Pattern
@@ -35,6 +35,7 @@ type Pattern
     | Millisecond
     | TimeZoneOffset
     | TimeZoneOffsetColon
+    | Whitespace
     | Other String
 
 
@@ -56,6 +57,7 @@ patternListHelper : List Pattern -> Parser (List Pattern)
 patternListHelper patterns =
     oneOf
         [ nextPattern |> andThen (\pattern -> patternListHelper (pattern :: patterns))
+        , repeat oneOrMore (symbol " ") |> andThen (\_ -> patternListHelper (Whitespace :: patterns))
         , other |> andThen (\pattern -> patternListHelper (pattern :: patterns))
         , succeed (List.reverse patterns)
         ]
@@ -109,11 +111,12 @@ other =
             else
                 succeed (Other str)
     in
-        Parser.ignore Parser.zeroOrMore isNotSymbol
-            |> Parser.sourceMap always
-            |> andThen toPattern
+    Parser.ignore Parser.zeroOrMore isNotSymbolOrSpace
+        |> Parser.sourceMap always
+        |> andThen toPattern
 
 
-isNotSymbol : Char -> Bool
-isNotSymbol char =
-    char /= '%'
+isNotSymbolOrSpace : Char -> Bool
+isNotSymbolOrSpace char =
+    (char /= '%')
+        && (char /= ' ')

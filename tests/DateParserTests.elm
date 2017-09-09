@@ -1,12 +1,12 @@
 module DateParserTests exposing (tests)
 
-import Test exposing (..)
-import Expect exposing (Expectation)
-import DateParser
 import Date exposing (Month(..))
 import Date.Extra.Config.Config_en_us exposing (config)
 import Date.Extra.Create
-import TestHelpers exposing (mapOk, mapError, join)
+import DateParser
+import Expect exposing (Expectation)
+import Test exposing (..)
+import TestHelpers exposing (join, mapError, mapOk)
 
 
 tests : Test
@@ -40,4 +40,8 @@ tests =
             \() ->
                 DateParser.parse config "%H:%M" "21:01"
                     |> Expect.equal (Ok <| Date.Extra.Create.dateFromFields 1900 Jan 1 21 1 0 0)
+        , test "allows multiple whitespaces" <|
+            \() ->
+                DateParser.parse config "%m/%d/%Y %-I:%M %p" "05/27/2017  1:59 PM"
+                    |> Expect.equal (Ok <| Date.Extra.Create.dateFromFields 2017 May 27 13 59 0 0)
         ]

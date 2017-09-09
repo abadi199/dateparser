@@ -25,7 +25,19 @@ parseTests =
         , test "Pattern.parse %d - %m - %Y" <|
             \() ->
                 Pattern.parse "%d - %m - %Y"
-                    |> mapOk (Expect.equal [ DateZeroPadded, Other " - ", MonthZeroPadded, Other " - ", Year ])
+                    |> mapOk
+                        (Expect.equal
+                            [ DateZeroPadded
+                            , Whitespace
+                            , Other "-"
+                            , Whitespace
+                            , MonthZeroPadded
+                            , Whitespace
+                            , Other "-"
+                            , Whitespace
+                            , Year
+                            ]
+                        )
                     |> mapError (toString >> Expect.fail)
                     |> join
         ]

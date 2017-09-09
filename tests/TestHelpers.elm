@@ -1,4 +1,4 @@
-module TestHelpers exposing (mapOk, mapError, join)
+module TestHelpers exposing (join, mapError, mapOk)
 
 
 mapOk : (b -> c) -> Result a b -> Result a c
