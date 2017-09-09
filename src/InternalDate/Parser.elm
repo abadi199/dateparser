@@ -3,7 +3,7 @@ module InternalDate.Parser exposing (..)
 import Date exposing (Day(..), Month(..))
 import Date.Extra.Config
 import InternalDate.Type exposing (AmPm(..), InternalDate)
-import Parser exposing ((|.), (|=), Error, Parser, inContext, succeed)
+import Parser exposing ((|.), (|=), Error, Parser, inContext, oneOrMore, repeat, succeed)
 import Pattern exposing (Pattern(..))
 import String
 import Utilities exposing (monthToInt, toUpper)
@@ -101,6 +101,9 @@ fromPattern config pattern =
 
         TimeZoneOffsetColon ->
             timeZoneOffset True
+
+        Whitespace ->
+            whitespace
 
         Other symbol ->
             other symbol
@@ -427,6 +430,12 @@ paddedMinute =
 timeZoneOffsetColon : InternalDate -> Parser InternalDate
 timeZoneOffsetColon internalDate =
     Debug.crash "timeZoneOffsetColon"
+
+
+whitespace : InternalDate -> Parser InternalDate
+whitespace internalDate =
+    (inContext "Whitespace" <| succeed identity |. repeat oneOrMore (Parser.symbol " "))
+        |> Parser.andThen (\_ -> succeed internalDate)
 
 
 other : String -> InternalDate -> Parser InternalDate
