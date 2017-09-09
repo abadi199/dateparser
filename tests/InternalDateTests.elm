@@ -1,21 +1,12 @@
-module InternalDateTests exposing (tests)
+module InternalDateTests exposing (individualParserTests, parseTests)
 
-import Test exposing (..)
+import Date.Extra.Config.Config_en_us exposing (config)
 import Expect exposing (Expectation)
 import InternalDate exposing (parse)
-import InternalDate.Type exposing (InternalDate, emptyDate, AmPm(..))
-import TestHelpers exposing (mapOk, mapError, join)
-import Parser
+import InternalDate.Type exposing (AmPm(..), InternalDate, emptyDate)
 import Pattern exposing (Pattern(..))
-import Date.Extra.Config.Config_en_us exposing (config)
-
-
-tests : Test
-tests =
-    describe "InternalDate Test Suite"
-        [ parseTests
-        , individualParserTests
-        ]
+import Test exposing (..)
+import TestHelpers exposing (join, mapError, mapOk)
 
 
 individualParserTests : Test
@@ -183,19 +174,19 @@ individualParserTests =
                     |> mapOk (.second >> Expect.equal 0)
                     |> mapError (toString >> Expect.fail)
                     |> join
-        , test "Millisecond" <|
+        , test "Millisecond (zero)" <|
             \() ->
                 InternalDate.parse "000" config [ Millisecond ]
                     |> mapOk (.millisecond >> Expect.equal 0)
                     |> mapError (toString >> Expect.fail)
                     |> join
-        , test "Millisecond" <|
+        , test "Millisecond (two leading zeros)" <|
             \() ->
                 InternalDate.parse "008" config [ Millisecond ]
                     |> mapOk (.millisecond >> Expect.equal 8)
                     |> mapError (toString >> Expect.fail)
                     |> join
-        , test "Millisecond" <|
+        , test "Millisecond (one leading zero)" <|
             \() ->
                 InternalDate.parse "023" config [ Millisecond ]
                     |> mapOk (.millisecond >> Expect.equal 23)
@@ -207,31 +198,31 @@ individualParserTests =
                     |> mapOk (.millisecond >> Expect.equal 999)
                     |> mapError (toString >> Expect.fail)
                     |> join
-        , test "Millisecond" <|
+        , test "Millisecond (too many digits)" <|
             \() ->
                 InternalDate.parse "9998" config [ Millisecond ]
                     |> mapOk (always (Expect.fail "should fail"))
                     |> mapError (always Expect.pass)
                     |> join
-        , test "TimeZoneOffsetColon" <|
+        , test "TimeZoneOffsetColon (positive)" <|
             \() ->
                 InternalDate.parse "+10:30" config [ TimeZoneOffsetColon ]
                     |> mapOk (.timeZoneOffset >> Expect.equal -630)
                     |> mapError (toString >> Expect.fail)
                     |> join
-        , test "TimeZoneOffsetColon" <|
+        , test "TimeZoneOffsetColon (negative)" <|
             \() ->
                 InternalDate.parse "-06:30" config [ TimeZoneOffsetColon ]
                     |> mapOk (.timeZoneOffset >> Expect.equal 390)
                     |> mapError (toString >> Expect.fail)
                     |> join
-        , test "TimeZoneOffset" <|
+        , test "TimeZoneOffset (positive)" <|
             \() ->
                 InternalDate.parse "+1030" config [ TimeZoneOffset ]
                     |> mapOk (.timeZoneOffset >> Expect.equal -630)
                     |> mapError (toString >> Expect.fail)
                     |> join
-        , test "TimeZoneOffset" <|
+        , test "TimeZoneOffset (negative)" <|
             \() ->
                 InternalDate.parse "-0630" config [ TimeZoneOffset ]
                     |> mapOk (.timeZoneOffset >> Expect.equal 390)

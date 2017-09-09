@@ -1,0 +1,12 @@
+{
+  "name": "dateparser",
+  "version": "1.0.0",
+  "description": "Custom Date Parser in Elm  This package is intended to work alongside with [rluiten/elm-date-extra](package.elm-lang.org/packages/rluiten/elm-date-extra/latest)",
+  "scripts": {
+    "test": "elm-make --yes && elm-test"
+  },
+  "devDependencies": {
+    "elm": "^0.18.0",
+    "elm-test": "^0.18.8"
+  }
+}
