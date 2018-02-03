@@ -44,4 +44,16 @@ tests =
             \() ->
                 DateParser.parse config "%m/%d/%Y %-I:%M %p" "05/27/2017  1:59 PM"
                     |> Expect.equal (Ok <| Date.Extra.Create.dateFromFields 2017 May 27 13 59 0 0)
+        , test "parse date in iso 8601" <|
+            \() ->
+                DateParser.parse config "%Y-%m-%dT%H:%M:%S" "2018-02-04T01:18:03"
+                    |> Expect.equal (Ok <| Date.Extra.Create.dateFromFields 2018 Feb 4 1 18 3 0)
+        , test "parse date in 0 hour" <|
+            \() ->
+                DateParser.parse config "%Y-%m-%dT%H:%M:%S" "2018-02-04T00:18:03"
+                    |> Expect.equal (Ok <| Date.Extra.Create.dateFromFields 2018 Feb 4 0 18 3 0)
+        , test "parse date in 23 hour" <|
+            \() ->
+                DateParser.parse config "%Y-%m-%dT%H:%M:%S" "2018-02-04T23:18:03"
+                    |> Expect.equal (Ok <| Date.Extra.Create.dateFromFields 2018 Feb 4 23 18 3 0)
         ]

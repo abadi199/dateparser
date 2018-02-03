@@ -212,7 +212,7 @@ hour24 internalDate =
 
 hour24Padded : String -> InternalDate -> Parser InternalDate
 hour24Padded pad internalDate =
-    List.range 1 24
+    List.range 0 23
         |> List.map (paddedInt pad (\number -> { internalDate | hour = number }))
         |> Parser.oneOf
 
@@ -252,7 +252,7 @@ monthNameParser config internalDate month =
             else
                 config.dateConfig.i18n.monthShort
     in
-    Parser.symbol (getMonthName month |> toUpper config.isUpper) |> Parser.andThen (always <| succeed { internalDate | month = monthToInt month })
+        Parser.symbol (getMonthName month |> toUpper config.isUpper) |> Parser.andThen (always <| succeed { internalDate | month = monthToInt month })
 
 
 monthName : ParserConfig -> InternalDate -> Parser InternalDate
@@ -272,7 +272,7 @@ dayNameParser config internalDate day =
             else
                 config.dateConfig.i18n.dayShort
     in
-    Parser.symbol (getDayName day |> toUpper config.isUpper) |> Parser.andThen (always <| succeed internalDate)
+        Parser.symbol (getDayName day |> toUpper config.isUpper) |> Parser.andThen (always <| succeed internalDate)
 
 
 dayOfWeek : ParserConfig -> InternalDate -> Parser InternalDate
@@ -319,8 +319,8 @@ dateSuffix usePadding config internalDate =
         parser date =
             Parser.symbol (config.i18n.dayOfMonthWithSuffix usePadding date) |> Parser.andThen (\_ -> Parser.succeed { internalDate | date = date })
     in
-    Parser.oneOf
-        (List.range 1 31 |> List.map parser)
+        Parser.oneOf
+            (List.range 1 31 |> List.map parser)
 
 
 number : (Int -> InternalDate) -> Int -> Parser InternalDate
@@ -340,10 +340,10 @@ paddedInt pad f number =
             else
                 numberStr
     in
-    if String.length numberStr > 2 then
-        Parser.fail "Number is more than 2 digit"
-    else
-        Parser.symbol paddedNumber |> Parser.andThen (always <| succeed (f number))
+        if String.length numberStr > 2 then
+            Parser.fail "Number is more than 2 digit"
+        else
+            Parser.symbol paddedNumber |> Parser.andThen (always <| succeed (f number))
 
 
 millisecond : InternalDate -> Parser InternalDate
@@ -367,11 +367,11 @@ millisecond internalDate =
             else
                 Parser.fail "not millisecond"
     in
-    Parser.oneOf
-        [ Parser.delayedCommit (Parser.symbol "00") Parser.int |> Parser.andThen thirdDigit
-        , Parser.delayedCommit (Parser.symbol "0") Parser.int |> Parser.andThen secondDigit
-        , Parser.int |> Parser.andThen firstDigit
-        ]
+        Parser.oneOf
+            [ Parser.delayedCommit (Parser.symbol "00") Parser.int |> Parser.andThen thirdDigit
+            , Parser.delayedCommit (Parser.symbol "0") Parser.int |> Parser.andThen secondDigit
+            , Parser.int |> Parser.andThen firstDigit
+            ]
 
 
 timeZoneOffset : Bool -> InternalDate -> Parser InternalDate
@@ -392,10 +392,10 @@ timeZoneOffset useColon internalDate =
         updateInternalDate sign ( hour, minute ) =
             Parser.succeed { internalDate | timeZoneOffset = sign * ((hour * 60) + minute) }
     in
-    Parser.oneOf
-        [ Parser.delayedCommit (Parser.symbol "+") parser |> Parser.andThen (updateInternalDate -1)
-        , Parser.delayedCommit (Parser.symbol "-") parser |> Parser.andThen (updateInternalDate 1)
-        ]
+        Parser.oneOf
+            [ Parser.delayedCommit (Parser.symbol "+") parser |> Parser.andThen (updateInternalDate -1)
+            , Parser.delayedCommit (Parser.symbol "-") parser |> Parser.andThen (updateInternalDate 1)
+            ]
 
 
 paddedInts : List Int -> Parser Int
@@ -410,9 +410,9 @@ paddedInts numbers =
         parser number =
             Parser.symbol (pad number) |> Parser.andThen (always (Parser.succeed number))
     in
-    numbers
-        |> List.map parser
-        |> Parser.oneOf
+        numbers
+            |> List.map parser
+            |> Parser.oneOf
 
 
 paddedHour : Parser Int
