@@ -212,7 +212,7 @@ hour24 internalDate =
 
 hour24Padded : String -> InternalDate -> Parser InternalDate
 hour24Padded pad internalDate =
-    List.range 1 24
+    List.range 0 23
         |> List.map (paddedInt pad (\number -> { internalDate | hour = number }))
         |> Parser.oneOf
 
